@@ -1,0 +1,245 @@
+﻿openapi: 3.0.3
+info:
+  title: API Data Mahasiswa
+  description: REST API CRUD untuk data mahasiswa (NAMA, ALAMAT, IPK, SEMESTER, HOBI).
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development
+tags:
+  - name: Mahasiswa
+    description: Operasi CRUD data mahasiswa
+paths:
+  /mahasiswa:
+    post:
+      tags: [Mahasiswa]
+      summary: Tambah data mahasiswa (CREATE)
+      operationId: createMahasiswa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Mahasiswa'
+            example:
+              nama: Budi Santoso
+              alamat: Jl. Merdeka No. 10, Jakarta
+              ipk: 3.75
+              semester: 5
+              hobi: Bersepeda
+      responses:
+        '201':
+          description: Data berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MahasiswaResponse'
+        '409':
+          description: NAMA sudah terdaftar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    get:
+      tags: [Mahasiswa]
+      summary: Ambil semua data mahasiswa (READ ALL)
+      operationId: listMahasiswa
+      responses:
+        '200':
+          description: Daftar seluruh mahasiswa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MahasiswaList'
+  /mahasiswa/{nama}:
+    parameters:
+      - $ref: '#/components/parameters/NamaParam'
+    get:
+      tags: [Mahasiswa]
+      summary: Ambil satu data berdasarkan NAMA (READ)
+      operationId: getMahasiswa
+      responses:
+        '200':
+          description: Data ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MahasiswaResponse'
+        '404':
+          description: Data tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    put:
+      tags: [Mahasiswa]
+      summary: Perbarui data berdasarkan NAMA (UPDATE)
+      operationId: updateMahasiswa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Mahasiswa'
+            example:
+              nama: Budi Santoso
+              alamat: Jl. Sudirman No. 5, Jakarta
+              ipk: 3.80
+              semester: 6
+              hobi: Berenang
+      responses:
+        '200':
+          description: Data berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MahasiswaResponse'
+        '404':
+          description: Data tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    delete:
+      tags: [Mahasiswa]
+      summary: Hapus data berdasarkan NAMA (DELETE)
+      operationId: deleteMahasiswa
+      responses:
+        '200':
+          description: Data berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletedResponse'
+        '404':
+          description: Data tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+components:
+  parameters:
+    NamaParam:
+      name: nama
+      in: path
+      required: true
+      description: Nama mahasiswa (primary key)
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+      example: Budi Santoso
+  schemas:
+    Mahasiswa:
+      type: object
+      required: [nama]
+      additionalProperties: false
+      properties:
+        nama:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Nama mahasiswa (primary key)
+          example: Budi Santoso
+        alamat:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: Alamat domisili
+          example: Jl. Merdeka No. 10, Jakarta
+        ipk:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 4
+          nullable: true
+          description: IPK 0.00 - 4.00
+          example: 3.75
+        semester:
+          type: integer
+          minimum: 1
+          maximum: 14
+          nullable: true
+          description: Semester 1 - 14
+          example: 5
+        hobi:
+          type: string
+          maxLength: 100
+          nullable: true
+          description: Hobi mahasiswa
+          example: Bersepeda
+    MahasiswaResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Data mahasiswa berhasil ditambahkan
+        data:
+          $ref: '#/components/schemas/Mahasiswa'
+    MahasiswaList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 2
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Mahasiswa'
+    DeletedResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Data mahasiswa berhasil dihapus
+        deleted_data:
+          $ref: '#/components/schemas/Mahasiswa'
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          example: Mahasiswa dengan nama 'Budi Santoso' tidak ditemukan
+    ValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+                example: [body, ipk]
+              msg:
+                type: string
+                example: Input should be less than or equal to 4
+              type:
+                type: string
+                example: greater_than_equal
